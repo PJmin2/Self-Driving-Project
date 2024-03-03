@@ -12,7 +12,7 @@
 #### <a href="본인 위키 주소" >수행 기록</a>
 
 #### 💥 박종민 - 영남대학교 로봇공학과 4학년
-#### <a href="https://github.com/PJmin2/Self-Driving-Project/wiki/%EC%9E%90%EB%A3%8C-%EC%A1%B0%EC%82%AC-%EB%B0%8F-%EC%A0%95%EB%A6%AC" >수행 기록</a>
+#### <a href="https://github.com/PJmin2/Self-Driving-Project/wiki" >수행 기록</a>
 
 #### 김영균 - 경북대학교 전자공학부 4학년
 #### <a href="본인 위키 주소" >수행 기록</a>
