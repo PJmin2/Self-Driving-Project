@@ -1,4 +1,5 @@
 # 🚘Self-Driving-Project
+#### <a href="https://www.notion.so/_-2-147f0e16208443ed95797454c0f65f0e" >노션</a>
 #### <a href="https://docs.google.com/document/d/1IUayn3Iwd6Q2cQbSXzq3wwh3GvN1OAu5RGB_o0dagMg/edit?pli=1" >수행 계획서</a>
 
 ## 🏁 대회
