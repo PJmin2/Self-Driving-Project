@@ -22,7 +22,7 @@ public:
     WallFollow() : Node("wall_follow_node")
     {
     
-		    scan_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(lidarscan_topic, 10, std::bind(&Safety::scan_callback, this, std::placeholders::_1));
+	scan_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(lidarscan_topic, 10, std::bind(&Safety::scan_callback, this, std::placeholders::_1));
         
         drive_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(drive_topic, 10); 
         
@@ -32,15 +32,15 @@ public:
 
 private:
 
-		rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_subscriber_;
-		rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr drive_publisher_;
-		rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr initialpose_publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_subscriber_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr drive_publisher_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr initialpose_publisher_;
 	
-		ackermann_msgs::msg::AckermannDriveStamped drive_msg;
+    ackermann_msgs::msg::AckermannDriveStamped drive_msg;
 		
-		float kp = kp;
-		float ki = ki;
-		float kd = kd;
+    float kp = kp;
+    float ki = ki;
+    float kd = kd;
 		    
     float prev_error = 0.0;
     float error = 0.0;
@@ -52,7 +52,7 @@ private:
     float get_range(float* range_data, float angle)
     {
 				
-				int index = static_cast <int> (std::floor((angle - angle_min) / angle_increment));
+	int index = static_cast <int> (std::floor((angle - angle_min) / angle_increment));
         return range_data[index]
     
     }
@@ -88,22 +88,22 @@ private:
         return dist - lookahead_dist;
     }
 	
-		float get_velocity(float angle)
-		{
+    float get_velocity(float angle)
+    {
 		
-		    if (angle < M_PI/18)
-		    {
-		        return 1.5
-		    }
+        if (angle < M_PI/18)
+	{
+	    return 1.5
+	}
 		    
-		    if (angle < M_PI/9)
-		    {
-		        return 1.0
-		    }
+	if (angle < M_PI/9)
+	{
+	    return 1.0
+	}
 		    
-		    return 0.5
+	return 0.5
 		    
-		}
+    }
 		
     void pid_control(float error)
     {
@@ -123,7 +123,7 @@ private:
         
         if (abs(error) < 0.1)
         {
-	          angle = 0.0;
+	    angle = 0.0;
         }
         
         float velocity = get_velocity(abs(angle));
@@ -137,7 +137,7 @@ private:
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
     {
 	    
-		    float angle_min = scan_msg->angle_min;
+	float angle_min = scan_msg->angle_min;
         float angle_increment = scan_msg->angle_increment;
        
         const vector<float> &ranges = scan_msg->ranges;
@@ -146,7 +146,6 @@ private:
         pid_control(error);
        
     }
-
 };
 
 float getUserInput(const std::string& prompt)
@@ -161,8 +160,8 @@ float getUserInput(const std::string& prompt)
 int main(int argc, char ** argv) {
     rclcpp::init(argc, argv);
     float kp = getUserInput("kp: ");
-	  float kd = getUserInput("kd: ");
-	  float ki = getUserInput("ki: ");
+    float ki = getUserInput("ki: ");
+    float kd = getUserInput("kd: ");
     rclcpp::spin(std::make_shared<WallFollow>(kp, ki, kd));
     rclcpp::shutdown();
     return 0;
