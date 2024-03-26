@@ -15,14 +15,14 @@ const string &lidarscan_topic = "/scan";
 const string &drive_topic = "/drive";
 const string &initialpose_topic = "/initialpose_topic";
 
-class WallFollow(float kp, float ki, float kd) : public rclcpp::Node {
+class WallFollow : public rclcpp::Node {
 
 public:
 
     WallFollow() : Node("wall_follow_node")
     {
-    
-	scan_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(lidarscan_topic, 10, std::bind(&Safety::scan_callback, this, std::placeholders::_1));
+
+	scan_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(lidarscan_topic, 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
         
         drive_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(drive_topic, 10); 
         
@@ -47,17 +47,20 @@ private:
     float integral = 0.0;
     
     float lookahead_dist = 1.0;
-    float current_reading_time = time();
+    time_t current_reading_time = time(NULL);
 
-    float get_range(float* range_data, float angle)
+    float angle_min = 0.0;
+    float angle_increment = 0.0;
+
+    float get_range(vector<float> range_data, float angle)
     {
 				
 	int index = static_cast <int> (std::floor((angle - angle_min) / angle_increment));
-        return range_data[index]
+        return range_data.at(index);
     
     }
 
-    float get_error(float* range_data, float dist)
+    float get_error(vector<float> range_data, float dist)
     {
         
         float angle_b = M_PI / 2.0;
@@ -65,13 +68,13 @@ private:
         
         while (!isnan(get_range(range_data, angle_a)) || (angle_a == angle_b))
         {
-            printf('skipping a');
+            printf("skipping a");
             angle_a += 0.02;
         }
         
         while (!isnan(get_range(range_data, angle_b)) || (angle_a == angle_b))
         {
-            printf('skipping b');
+            printf("skipping b");
             angle_b += 0.02;
         }
 
@@ -79,7 +82,7 @@ private:
         float b = get_range(range_data, angle_b);
         float theta = angle_b - angle_a;
         
-        float alpha = atan2((a * cosf(theta) - b), (a * sinf(theta));
+        float alpha = atan2(a * cosf(theta) - b, a * sinf(theta));
         
         float curr_dist = b * cosf(alpha);
         
@@ -93,15 +96,15 @@ private:
 		
         if (angle < M_PI/18)
 	{
-	    return 1.5
+	    return 1.5;
 	}
 		    
 	if (angle < M_PI/9)
 	{
-	    return 1.0
+	    return 1.0;
 	}
 		    
-	return 0.5
+	return 0.5;
 		    
     }
 		
@@ -110,8 +113,8 @@ private:
         
         float angle = 0.0;
         
-        float previous_reading_time = current_reading_time;
-        current_reading_time = time();
+        time_t previous_reading_time = current_reading_time;
+        current_reading_time = time(NULL);
         float dt = current_reading_time - previous_reading_time;
         
         integral = prev_error * dt;
@@ -142,7 +145,7 @@ private:
        
         const vector<float> &ranges = scan_msg->ranges;
         				
-        float error = get_error(&ranges, 1.0);
+        float error = get_error(ranges, 1.0);
         pid_control(error);
        
     }
@@ -154,7 +157,7 @@ float getUserInput(const std::string& prompt)
     std::string input;
     std::cin >> input;
     
-    return std::stof(input)
+    return std::stof(input);
 }
 
 int main(int argc, char ** argv) {
@@ -162,7 +165,7 @@ int main(int argc, char ** argv) {
     float kp = getUserInput("kp: ");
     float ki = getUserInput("ki: ");
     float kd = getUserInput("kd: ");
-    rclcpp::spin(std::make_shared<WallFollow>(kp, ki, kd));
+    rclcpp::spin(std::make_shared<WallFollow>());
     rclcpp::shutdown();
     return 0;
 }
