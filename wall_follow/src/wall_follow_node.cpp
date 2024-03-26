@@ -13,7 +13,7 @@ using namespace std;
 
 const string &lidarscan_topic = "/scan";
 const string &drive_topic = "/drive";
-const string &initialpose_topic = "/initialpose_topic";
+const string &initialpose_topic = "/initialpose";
 
 class WallFollow : public rclcpp::Node {
 
@@ -30,6 +30,15 @@ public:
         
     }
 
+    float getUserInput(const std::string& prompt)
+    {
+        float input;
+        std::cout << prompt;
+        std::cin >> input;
+
+        return input;
+    }
+
 private:
 
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_subscriber_;
@@ -38,16 +47,15 @@ private:
 	
     ackermann_msgs::msg::AckermannDriveStamped drive_msg;
 		
-    float kp = kp;
-    float ki = ki;
-    float kd = kd;
+    float kp = getUserInput("kp: ");
+    float ki = getUserInput("ki: ");
+    float kd = getUserInput("kd: ");
 		    
     float prev_error = 0.0;
     float error = 0.0;
-    float integral = 0.0;
     
     float lookahead_dist = 1.0;
-    time_t current_reading_time = time(NULL);
+    clock_t current_reading_time = clock();
 
     float angle_min = 0.0;
     float angle_increment = 0.0;
@@ -66,13 +74,13 @@ private:
         float angle_b = M_PI / 2.0;
         float angle_a = M_PI / 4.0;
         
-        while (!isnan(get_range(range_data, angle_a)) || (angle_a == angle_b))
+        while (isnan(get_range(range_data, angle_a)) || (angle_a == angle_b))
         {
             printf("skipping a");
             angle_a += 0.02;
         }
         
-        while (!isnan(get_range(range_data, angle_b)) || (angle_a == angle_b))
+        while (isnan(get_range(range_data, angle_b)) || (angle_a == angle_b))
         {
             printf("skipping b");
             angle_b += 0.02;
@@ -113,9 +121,9 @@ private:
         
         float angle = 0.0;
         
-        time_t previous_reading_time = current_reading_time;
-        current_reading_time = time(NULL);
-        float dt = current_reading_time - previous_reading_time;
+        clock_t previous_reading_time = current_reading_time;
+        current_reading_time = clock();
+        float dt = (current_reading_time - previous_reading_time) / 1000.0;
         
         integral = prev_error * dt;
         float derivative = (error - prev_error) / dt;
@@ -151,20 +159,9 @@ private:
     }
 };
 
-float getUserInput(const std::string& prompt)
-{
-    std::cout << prompt;
-    std::string input;
-    std::cin >> input;
-    
-    return std::stof(input);
-}
 
 int main(int argc, char ** argv) {
     rclcpp::init(argc, argv);
-    float kp = getUserInput("kp: ");
-    float ki = getUserInput("ki: ");
-    float kd = getUserInput("kd: ");
     rclcpp::spin(std::make_shared<WallFollow>());
     rclcpp::shutdown();
     return 0;
