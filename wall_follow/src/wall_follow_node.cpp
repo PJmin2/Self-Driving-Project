@@ -56,7 +56,7 @@ private:
     {
 				
 	int index = static_cast <int> (std::floor((angle - angle_min) / angle_increment));
-        return range_data.at(index);
+        return *&range_data[index];
     
     }
 
