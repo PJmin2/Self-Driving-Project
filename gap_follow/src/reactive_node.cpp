@@ -1,10 +1,15 @@
+#include <sstream>
 #include <string>
-#include <vector>
+#include <cmath>
+#include <array>
+#include <algorithm>
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
+
+#define ARRAY_LENGTH 1080
 
 using namespace std;
 
@@ -18,7 +23,7 @@ public:
     ReactiveFollowGap() : Node("reactive_node")
     {
     
-		    scan_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(lidarscan_topic, 10, std::bind(&ReactiveFollowGap::scan_callback, this, std::placeholders::_1));
+	scan_subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(lidarscan_topic, 10, std::bind(&ReactiveFollowGap::scan_callback, this, std::placeholders::_1));
         
         drive_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(drive_topic, 10); 
     
@@ -26,61 +31,83 @@ public:
 
 private:
 
-		rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_subscriber_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_subscriber_;
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr drive_publisher_;
     
     ackermann_msgs::msg::AckermannDriveStamped drive_msg;
-    
-    float last_processed_ranges[1080] = { 0, };
 
-    void preprocess_lidar(float* ranges)
+    float max_value = 1.4;
+    array<float, ARRAY_LENGTH> last_processed_ranges = { 0, };
+
+    flaot preprocess_lidar(float ranges_arr[])
     {   
-        float max_value = 1.4;
-        proc_ranges = ranges;
-        ranges = (proc_ranges + last_processed_ranges) / 2;
-        last_processed_ranges = proc_ranges;
+
+	array<float, ARRAY_LENGTH> ranges;
+        ranges = (ranges_arr + last_processed_ranges) / 2;
+        last_processed_ranges = ranges_arr;
         
         ranges = std::clamp(ranges, 0, max_value);
         return ranges;
     }
 
-		int find_closest_point(float* ranges)
+    int find_closest_point(float ranges_arr[])
     {   
-        return *std::min_element(ranges.begin(), ranges.end());
+        return min_element(ranges_arr, ranges_arr + 1080) - ranges_arr.begin();
     }
 
-		
-    void find_max_gap(float* ranges, int* indice)
+    void process_bubble(float& ranges_arr[], int point_idx)
+    {
+        left, right = max_element(ranges_arr.begin(), ranges_arr.begin() + (point_idx - 100)), min_element(ranges_arr.begin() + (len(ranges)-1), ranges_arr.begin() + (point_idx + 99));
+        ranges_arr[left: right+1] = [0] * (right - left + 1);
+    }
+
+    void find_max_gap(float ranges_arr[])
     {   
-        // Return the start index & end index of the max gap in free_space_ranges
-        return;
+    
+        split_idx = std::copy_if(ranges.begin(), ranges.end(), ranges == 0.0);
+	// 값이 0.0인 인덱스 색출
+        sranges = ;
+	// split_idx를 기준으로 gap 분할
+        len_sranges =;
+	// gap의 길이를 정리한 배열
+        max_idx =;
+	// 가장 길이가 긴 gap 선정
+        if (max_idx == 0)
+        {
+	    start_i = 0;
+	    end_i = len_sranges[0]-1;
+        }
+        else
+        {
+	    start_i =;
+	    end_i = start_i+len_sranges[max_idx]-1;
+        }
+        max_length_ranges = sranges[max_idx];
+        return start_i, end_i, max_length_ranges;
     }
 
     void find_best_point(float* ranges, int* indice)
     {   
-        // Start_i & end_i are start and end indicies of max-gap range, respectively
-        // Return index of best point in ranges
-	    // Naive: Choose the furthest point within ranges and go there
         return;
     }
 
-		float get_velocity(float steering_angle)
+    float get_velocity(float steering_angle)
     {
 		
         if (abs(steering_angle) >= deg2rad(0) && abs(steering_angle) < deg2rad(10):
-				{
-	          return 3.0;
-				}
+	{
+	    return 3.0;
+	}
 		    
-				elif (abs(steering_angle) >= deg2rad(10) && abs(steering_angle) < deg2rad(20):
-				{
-				    return 1.0;
-				}
+	elif (abs(steering_angle) >= deg2rad(10) && abs(steering_angle) < deg2rad(20):
+	{
+	    return 1.0;
+	}
 				
-		    else
-		    {
-						return 0.5;
-		    }
+	else
+	{
+	    return 0.5;
+	}
     }
 
 
@@ -90,14 +117,15 @@ private:
         float angle_min = scan_msg->angle_min;
         float angle_increment = scan_msg->angle_increment;
        
-        const vector<float> &ranges = scan_msg->ranges;
-        
-        proc_ranges = preprocess_lidar(ranges);
-        closest_point = find_closet_point(proc_ranges);
-        
-        bubble_processed_ranges = process_bubble(proc_ranges, closest_point);
-        
-        max_gap_start, max_gep_end, max_gap_ranges = find_max_gap(bubble_processed_ranges);
+	array<float, ARRAY_LENGTH> ranges_arr = scan_msg->ranges;
+	    
+        ranges_arr = preprocess_lidar(ranges_arr);
+	// 이전 배열값과의 평균
+        int closest_point = find_closet_point(ranges_arr);
+        // 가장 작은 배열 요소의 인덱스
+        ranges_arr = process_bubble(ranges_arr, closest_point);
+        // 가장 작은 배열 요소의 인덱스 주변의 배열 요소를 0으로 초기화
+        max_gap_start, max_gep_end, max_gap_ranges = find_max_gap(ranges_arr);
         max_point = find_base_point(max_gap_start, max_gap_end, max_gap_ranges);
         
         steering_angle = (max_point * angle_increment) + angle_min;
