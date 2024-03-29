@@ -75,20 +75,27 @@ private:
         if (max_idx == 0)
         {
 	    start_i = 0;
+	    // max_gap start_index
 	    end_i = len_sranges[0]-1;
+	    // max_gap_end_index
         }
         else
         {
-	    start_i =;
+	    start_i =np.sum(len_sranges[:max_idx]);
+	    // max_gap start_index
 	    end_i = start_i+len_sranges[max_idx]-1;
+	    // max_gap_end_index
         }
         max_length_ranges = sranges[max_idx];
+	// max_gap의 길이
         return start_i, end_i, max_length_ranges;
     }
 
     void find_best_point(float* ranges, int* indice)
     {   
-        return;
+	idx_list = np.where(ranges == np.max(ranges))[0];
+        best_idx = start_i + idx_list[round(len(idx_list)/2)];
+        return best_idx;
     }
 
     float get_velocity(float steering_angle)
@@ -126,8 +133,10 @@ private:
         ranges_arr = process_bubble(ranges_arr, closest_point);
         // 가장 작은 배열 요소의 인덱스 주변의 배열 요소를 0으로 초기화
         max_gap_start, max_gep_end, max_gap_ranges = find_max_gap(ranges_arr);
-        max_point = find_base_point(max_gap_start, max_gap_end, max_gap_ranges);
-        
+        // max_gap을 찾는 과정
+	max_point = find_base_point(max_gap_start, max_gap_end, max_gap_ranges);
+        //
+	
         steering_angle = (max_point * angle_increment) + angle_min;
         
         drive_msg.drive.steering_angle = steering_angle;
