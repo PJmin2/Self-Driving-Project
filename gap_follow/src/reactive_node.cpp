@@ -81,8 +81,9 @@ private:
         return min_element(ranges_arr.begin(), ranges_arr.end()) - ranges_arr.begin();
     }
 
-    void process_bubble(vecotr<float>& ranges_arr, int point_idx)
+    void process_bubble(vecotr<float>* ranges_arr, int point_idx)
     {
+	// 여기서부터 시작
         left, right = max_element(ranges_arr.begin(), ranges_arr.begin() + (point_idx - 100)), min_element(ranges_arr.begin() + (len(ranges)-1), ranges_arr.begin() + (point_idx + 99));
         ranges_arr[left: right+1] = [0] * (right - left + 1);
     }
