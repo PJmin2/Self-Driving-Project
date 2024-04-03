@@ -37,32 +37,51 @@ private:
     ackermann_msgs::msg::AckermannDriveStamped drive_msg;
 
     float max_value = 1.4;
-    array<float, ARRAY_LENGTH> last_processed_ranges = {};
+    vector<float> last_processed_ranges;
 
-    flaot preprocess_lidar(float ranges_arr[])
+    vector<flaot> preprocess_lidar(const sensor_msgs::msg::LaserScan::ConstSharedPtr &scan_msg)
     {   
 
-	array<float, ARRAY_LENGTH> ranges = {};
+	vector<float> filtered_ranges;
 
 	for (int i = 0; i < ARRAY_LENGTH; i++)
 	{
-	    ranges[i] = (ranges_arr[i] + last_processed_ranges[i]) / 2;
-	    // 이전 데이터와의 평균으로 어느정도 보정 
-	    last_processed_ranges[i] = ranges_arr[i];
+		
+	    if (isnan(scan_msg->ranges[i]))
+	    {
+	        filtered_ranges.push_back(0.0);
+	    }
+	    else if (scan_msg->ranges[i] > max_value || isinf(scan_msg->ranges[i]))
+	    {    
+		filtered_ranges.push_back(max_value);
+	    }
+	    else
+	    {
+	        filtered_ranges.push_back(scan_msg->ranges[i]);
+	    }
+		
 	}
-	    
-        ranges = std::clamp(ranges, 0, max_value);
-        return ranges;
+
+	for (int i = 0; i < ARRAY_LENGTH; i++)
+	{
+		
+	    float before_ranges = filtered_ranges[i];
+	    filtered_ranges[i] = (filtered_ranges[i] + last_processed_ranges[i]) / 2;
+	    // 이전 데이터와의 평균으로 어느정도 보정 
+	    last_processed_ranges[i] = before_ranges;
+	}
+	
+	return filtered_ranges;
 	
     }
-
-    int find_closest_point(float ranges_arr[])
+    
+    int find_closest_point(vector<float>& ranges_arr)
     {   
 	// 인덱스 반환
-        return min_element(ranges_arr, ranges_arr + 1080) - ranges_arr.begin();
+        return min_element(ranges_arr.begin(), ranges_arr.end()) - ranges_arr.begin();
     }
 
-    void process_bubble(float& ranges_arr[], int point_idx)
+    void process_bubble(vecotr<float>& ranges_arr, int point_idx)
     {
         left, right = max_element(ranges_arr.begin(), ranges_arr.begin() + (point_idx - 100)), min_element(ranges_arr.begin() + (len(ranges)-1), ranges_arr.begin() + (point_idx + 99));
         ranges_arr[left: right+1] = [0] * (right - left + 1);
@@ -126,19 +145,18 @@ private:
     }
 
 
-    void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
+    void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr &scan_msg) 
     {   
         
         float angle_min = scan_msg->angle_min;
         float angle_increment = scan_msg->angle_increment;
        
-	array<float, ARRAY_LENGTH> ranges_arr = scan_msg->ranges;
-	    
-        ranges_arr = preprocess_lidar(ranges_arr);
+        auto ranges_arr = preprocess_lidar(scan_msg);
 	// 이전 배열값과의 평균
-        int closest_point = find_closet_point(ranges_arr);
+        int closest_index = find_closest_point(ranges_arr);
         // 가장 작은 배열 요소의 인덱스
-        ranges_arr = process_bubble(ranges_arr, closest_point);
+	float closest_range = ranges_arr[closest_index];
+        ranges_arr = process_bubble(&ranges_arr, closest_index);
         // 가장 작은 배열 요소의 인덱스 주변의 배열 요소를 0으로 초기화
         max_gap_start, max_gep_end, max_gap_ranges = find_max_gap(ranges_arr);
         // max_gap을 찾는 과정
