@@ -37,21 +37,28 @@ private:
     ackermann_msgs::msg::AckermannDriveStamped drive_msg;
 
     float max_value = 1.4;
-    array<float, ARRAY_LENGTH> last_processed_ranges = { 0, };
+    array<float, ARRAY_LENGTH> last_processed_ranges = {};
 
     flaot preprocess_lidar(float ranges_arr[])
     {   
 
-	array<float, ARRAY_LENGTH> ranges;
-        ranges = (ranges_arr + last_processed_ranges) / 2;
-        last_processed_ranges = ranges_arr;
-        
+	array<float, ARRAY_LENGTH> ranges = {};
+
+	for (int i = 0; i < ARRAY_LENGTH; i++)
+	{
+	    ranges[i] = (ranges_arr[i] + last_processed_ranges[i]) / 2;
+	    // 이전 데이터와의 평균으로 어느정도 보정 
+	    last_processed_ranges[i] = ranges_arr[i];
+	}
+	    
         ranges = std::clamp(ranges, 0, max_value);
         return ranges;
+	
     }
 
     int find_closest_point(float ranges_arr[])
     {   
+	// 인덱스 반환
         return min_element(ranges_arr, ranges_arr + 1080) - ranges_arr.begin();
     }
 
@@ -63,14 +70,15 @@ private:
 
     void find_max_gap(float ranges_arr[])
     {   
-    
-        split_idx = std::copy_if(ranges.begin(), ranges.end(), ranges == 0.0);
-	// 값이 0.0인 인덱스 색출
+
+	vector<int> split_idx 
+        copy_if(ranges_arr.begin(), ranges_arr.end(), back_inserter(split_idx), ranges_arr == 0.0);
+	// 값이 0.0인 인덱스 색출(동적)
         sranges = ;
 	// split_idx를 기준으로 gap 분할
-        len_sranges =;
+        len_sranges = ;
 	// gap의 길이를 정리한 배열
-        max_idx =;
+        max_idx = ;
 	// 가장 길이가 긴 gap 선정
         if (max_idx == 0)
         {
