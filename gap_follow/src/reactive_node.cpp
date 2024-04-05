@@ -107,11 +107,11 @@ private:
 	int current_index = 0;
 	//uint_8로 변경하기
 
-	// 0.0이 나오면 그동안의 길이를 저장하고 current_index 업데이트
+	// 0.1보다 크면 반복하여 그동안의 길이를 저장하고 current_index 업데이트
 	while (current_index < ARRAY_LENGTH)
 	{
     	    max_szie = 0;
-	    while (ranges_vec[current_index] != 0.0)
+	    while (ranges_vec[current_index] > 0.1)
 	    {
         	current_index++;
 		max_size++;
@@ -126,8 +126,8 @@ private:
 	    current_index++;
 	    
 	}
-	    
-        return start_i, end_i, max_length_ranges;
+	// max_gap의 시작점과 끝점을 반환     
+        return {max_start, max_start + max_size - 1};
     }
 
     void find_best_point(float* ranges, int* indice)
@@ -167,6 +167,8 @@ private:
 	// 벡터 전처리(nan, inf, max) & 이전 벡터값과의 평균
         int closest_index = find_closest_point(ranges_vec);
         // 가장 작은 벡터 요소의 인덱스(가장 가까운 거리)
+	//-> ranges_vec은 벡터 즉 연속된 저장공간을 가지기 때문에 ranges_vec은 첫번째 주소를 가르킴
+	//-> 하여 함수는 주소를 받기 때문에 포인터 자료형으로 받아야지 주소로 접근하여 데이터를 취득가능    
 	float closest_range = ranges_vec[closest_index];
 	// 원본 변경 전 closest_range 저장
         process_bubble(&ranges_vec, closest_index);
@@ -174,7 +176,7 @@ private:
         max_gap_start, max_gep_end = find_max_gap(ranges_vec);
         // max_gap을 찾는 과정
 	max_point = find_base_point(max_gap_start, max_gap_end, max_gap_ranges);
-        //
+        // 여기서 부터 진행ㄱㄱ
 	
         steering_angle = (max_point * angle_increment) + angle_min;
         
