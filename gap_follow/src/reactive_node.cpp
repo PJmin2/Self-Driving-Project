@@ -75,47 +75,58 @@ private:
 	
     }
     
-    int find_closest_point(vector<float>& ranges_arr)
+    int find_closest_point(vector<float>& ranges_vec)
     {   
 	// 인덱스 반환
-        return min_element(ranges_arr.begin(), ranges_arr.end()) - ranges_arr.begin();
+        return min_element(ranges_vec.begin(), ranges_vec.end()) - ranges_vec.begin();
     }
 
-    void process_bubble(vecotr<float>* ranges_arr, int point_idx)
+    void process_bubble(vecotr<float>* ranges_vec, int closest_index)
     {
-	// 여기서부터 시작
-        left, right = max_element(ranges_arr.begin(), ranges_arr.begin() + (point_idx - 100)), min_element(ranges_arr.begin() + (len(ranges)-1), ranges_arr.begin() + (point_idx + 99));
-        ranges_arr[left: right+1] = [0] * (right - left + 1);
+	// ranges_vec 벡터를 주소로 받아와서 원본 수정
+	// 가장 작은 거리 + 버블 반지름을 기준으로 그보다 작은경우 0으로 초기화 
+	const float center_point_distance = ranges_vec->at(closest_index);
+	ranges_vec->at(closest_index_idx) = 0.0;
+
+	int current_index = closest_index;
+        for (int i = 0; i < ARRAY_LENGTH; i++)
+	{
+	    if (ranges_vec->at(i) < canter_point_distance + bubble_radius)
+	    {
+	        ranges_vec->at(i) = 0.0;
+	    }
+	}
     }
 
-    void find_max_gap(float ranges_arr[])
+    pair<int, int> find_max_gap(vector<float>& ranges_vec)
     {   
+	int max_start = 0;
+	int max_size = 0;
+	int max_before = 0;
 
-	vector<int> split_idx 
-        copy_if(ranges_arr.begin(), ranges_arr.end(), back_inserter(split_idx), ranges_arr == 0.0);
-	// 값이 0.0인 인덱스 색출(동적)
-        sranges = ;
-	// split_idx를 기준으로 gap 분할
-        len_sranges = ;
-	// gap의 길이를 정리한 배열
-        max_idx = ;
-	// 가장 길이가 긴 gap 선정
-        if (max_idx == 0)
-        {
-	    start_i = 0;
-	    // max_gap start_index
-	    end_i = len_sranges[0]-1;
-	    // max_gap_end_index
-        }
-        else
-        {
-	    start_i =np.sum(len_sranges[:max_idx]);
-	    // max_gap start_index
-	    end_i = start_i+len_sranges[max_idx]-1;
-	    // max_gap_end_index
-        }
-        max_length_ranges = sranges[max_idx];
-	// max_gap의 길이
+	int current_index = 0;
+	//uint_8로 변경하기
+
+	// 0.0이 나오면 그동안의 길이를 저장하고 current_index 업데이트
+	while (current_index < ARRAY_LENGTH)
+	{
+    	    max_szie = 0;
+	    while (ranges_vec[current_index] != 0.0)
+	    {
+        	current_index++;
+		max_size++;
+	    }
+            
+	    if (max_size > max_before)
+	    {
+	        max_before = max_size;
+		max_start = current_index - max_size;
+	    }
+
+	    current_index++;
+	    
+	}
+	    
         return start_i, end_i, max_length_ranges;
     }
 
@@ -152,14 +163,15 @@ private:
         float angle_min = scan_msg->angle_min;
         float angle_increment = scan_msg->angle_increment;
        
-        auto ranges_arr = preprocess_lidar(scan_msg);
-	// 이전 배열값과의 평균
-        int closest_index = find_closest_point(ranges_arr);
-        // 가장 작은 배열 요소의 인덱스
-	float closest_range = ranges_arr[closest_index];
-        ranges_arr = process_bubble(&ranges_arr, closest_index);
-        // 가장 작은 배열 요소의 인덱스 주변의 배열 요소를 0으로 초기화
-        max_gap_start, max_gep_end, max_gap_ranges = find_max_gap(ranges_arr);
+        auto ranges_vec = preprocess_lidar(scan_msg);
+	// 벡터 전처리(nan, inf, max) & 이전 벡터값과의 평균
+        int closest_index = find_closest_point(ranges_vec);
+        // 가장 작은 벡터 요소의 인덱스(가장 가까운 거리)
+	float closest_range = ranges_vec[closest_index];
+	// 원본 변경 전 closest_range 저장
+        process_bubble(&ranges_vec, closest_index);
+        // 벡터의 가장 작은 요소 + 버블 반지름을 기준으로 벡터의 요소를 0으로 초기화(원본 변경)
+        max_gap_start, max_gep_end = find_max_gap(ranges_vec);
         // max_gap을 찾는 과정
 	max_point = find_base_point(max_gap_start, max_gap_end, max_gap_ranges);
         //
