@@ -130,22 +130,20 @@ private:
         return {max_start, max_start + max_size - 1};
     }
 
-    void find_best_point(float* ranges, int* indice)
+    int find_best_point(int start_index, int end_index)
     {   
-	idx_list = np.where(ranges == np.max(ranges))[0];
-        best_idx = start_i + idx_list[round(len(idx_list)/2)];
-        return best_idx;
+        return (start_index + end_index)/2;
     }
 
     float get_velocity(float steering_angle)
     {
 		
-        if (abs(steering_angle) >= deg2rad(0) && abs(steering_angle) < deg2rad(10):
+        if (abs(steering_angle) >= deg2rad(0) && abs(steering_angle) < deg2rad(10))
 	{
 	    return 3.0;
 	}
 		    
-	elif (abs(steering_angle) >= deg2rad(10) && abs(steering_angle) < deg2rad(20):
+	elif (abs(steering_angle) >= deg2rad(10) && abs(steering_angle) < deg2rad(20))
 	{
 	    return 1.0;
 	}
@@ -175,8 +173,8 @@ private:
         // 벡터의 가장 작은 요소 + 버블 반지름을 기준으로 벡터의 요소를 0으로 초기화(원본 변경)
         max_gap_start, max_gep_end = find_max_gap(ranges_vec);
         // max_gap을 찾는 과정
-	max_point = find_base_point(max_gap_start, max_gap_end, max_gap_ranges);
-        // 여기서 부터 진행ㄱㄱ
+	max_point = find_base_point(max_gap_start, max_gap_end);
+        // max_gap의 중간 인덱스 찾기
 	
         steering_angle = (max_point * angle_increment) + angle_min;
         
